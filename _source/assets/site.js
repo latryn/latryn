@@ -6,7 +6,8 @@
  */
 window.LATRYN = {
   email: "contact@latryn.com",            // receives "Scope a program", "Book a call" and general enquiries
-  careersEmail: "contact@latryn.com",     // receives "Join the Lattice" applications
+  careersEmail: "contact@latryn.com",     // shown on join.html for application questions
+  latticeEndpoint: "",                     // Google Apps Script web app URL (see _source/apps-script/README.md); empty = application opens an email instead
   bookingUrl: "",                          // e.g. a Cal.com or Calendly link; empty = use the contact form
   social: {
     linkedin: "",                          // e.g. https://www.linkedin.com/company/latryn
@@ -85,10 +86,8 @@ window.LATRYN = {
   var apply = document.getElementById("apply-form");
   document.querySelectorAll("[data-cta]").forEach(function (a) {
     a.addEventListener("click", function (e) {
-      var t = a.getAttribute("data-cta");
-      if (t === "apply") prefill(apply, { role: a.getAttribute("data-role") }, true);
-      else prefill(contact, { type: t, audience: a.getAttribute("data-audience") }, true);
-      var target = t === "apply" ? apply : contact;
+      prefill(contact, { type: a.getAttribute("data-cta"), audience: a.getAttribute("data-audience") }, true);
+      var target = contact;
       if (target && !(a.hasAttribute("data-book") && C.bookingUrl)) {
         e.preventDefault();
         scrollToEl(target, true);
@@ -122,7 +121,134 @@ window.LATRYN = {
     });
   }
   wire(contact, C.email, function (fd) { return (fd.get("type") || "Enquiry") + " | " + (fd.get("company") || fd.get("name")); });
-  wire(apply, C.careersEmail, function (fd) { return "Lattice application | " + fd.get("role") + " | " + fd.get("name"); });
+  if (apply) lattice(apply);
+
+  /* ---------- Lattice application (join.html) ----------
+     Posts JSON with the resume as base64 to the Google Apps Script in _source/apps-script,
+     which adds a row to the sheet, saves the resume to Drive and emails the applicant. */
+  function lattice(form) {
+    var MAX = 10 * 1024 * 1024, DOC = /\.(pdf|docx?)$/i;
+    var fields = [].slice.call(form.querySelectorAll("[data-field]"));
+    var file = form.elements.resume, drop = form.querySelector(".drop"), chosen = form.querySelector(".drop-file");
+    var btn = form.querySelector("button[type=submit]"), status = form.querySelector(".form-ok");
+    var count = document.getElementById("jcount"), bar = document.getElementById("jbar");
+
+    function control(f) { return f.querySelector("input,select"); }
+    function problem(f) {
+      var group = f.getAttribute("data-group");
+      if (group) return form.querySelector('input[name="' + group + '"]:checked') ? "" : f.getAttribute("data-msg");
+      var el = control(f), v = el.validity;
+      if (el.type === "file") {
+        var x = el.files[0];
+        if (!x) return f.getAttribute("data-msg");
+        if (!DOC.test(x.name)) return "Upload a PDF or Word document (.pdf, .doc or .docx)";
+        if (x.size > MAX) return "That file is " + (x.size / 1048576).toFixed(1) + " MB. The limit is 10 MB";
+        return "";
+      }
+      if (v.valueMissing) return f.getAttribute("data-msg");
+      if (el.name === "email" && !v.valid) return "Enter an email address like name@example.com";
+      if (el.name === "phone" && !v.valid) return "Enter a 10-digit phone number, digits only";
+      if (el.name === "portfolio" && !v.valid) return f.getAttribute("data-msg");
+      return v.valid ? "" : f.getAttribute("data-msg");
+    }
+    function check(f) {
+      var msg = problem(f), err = f.querySelector(".err");
+      f.classList.toggle("bad", !!msg);
+      if (err) err.textContent = msg;
+      [].forEach.call(f.querySelectorAll("input,select"), function (el) { el.setAttribute("aria-invalid", msg ? "true" : "false"); });
+      return !msg;
+    }
+    function progress() {
+      var done = fields.filter(function (f) { return (f.getAttribute("data-group") || control(f).required) && !problem(f); }).length;
+      if (count) count.textContent = done;
+      if (bar) bar.style.transform = "scaleX(" + done / 10 + ")";
+    }
+    fields.forEach(function (f) {
+      f.addEventListener("change", function () { if (f.dataset.touched || f.getAttribute("data-group")) check(f); f.dataset.touched = 1; progress(); });
+      f.addEventListener("focusout", function (e) {
+        if (f.getAttribute("data-group") && f.contains(e.relatedTarget)) return;
+        var el = control(f);
+        if (el.type !== "file" && (el.value || f.dataset.touched)) { f.dataset.touched = 1; check(f); }
+      });
+      f.addEventListener("input", function () { if (f.classList.contains("bad")) check(f); progress(); });
+    });
+    /* phone keeps digits only; a bare domain becomes a full link */
+    form.elements.phone.addEventListener("input", function (e) { var t = e.target, d = t.value.replace(/\D/g, "").slice(0, 10); if (d !== t.value) t.value = d; });
+    form.elements.portfolio.addEventListener("blur", function (e) { var t = e.target, v = t.value.trim(); if (v && !/^https?:\/\//i.test(v) && /\.[a-z]{2,}/i.test(v)) { t.value = "https://" + v; check(t.closest("[data-field]")); } });
+
+    function showFile() {
+      var x = file.files[0];
+      drop.classList.toggle("has", !!x);
+      chosen.hidden = !x;
+      if (x) chosen.textContent = x.name + " · " + (x.size < 1048576 ? Math.max(1, Math.round(x.size / 1024)) + " KB" : (x.size / 1048576).toFixed(1) + " MB");
+      check(file.closest("[data-field]")); progress();
+    }
+    file.addEventListener("change", showFile);
+    ["dragenter", "dragover"].forEach(function (t) { drop.addEventListener(t, function () { drop.classList.add("over"); }); });
+    ["dragleave", "drop"].forEach(function (t) { drop.addEventListener(t, function () { drop.classList.remove("over"); }); });
+
+    function busy(on) {
+      btn.disabled = on; form.setAttribute("aria-busy", on ? "true" : "false");
+      if (on) { btn.dataset.label = btn.innerHTML; btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Sending application'; }
+      else if (btn.dataset.label) { btn.innerHTML = btn.dataset.label; delete btn.dataset.label; }
+    }
+    function esc(t) { var n = document.createElement("i"); n.textContent = t; return n.innerHTML; }
+    function say(html, bad) { status.hidden = false; status.classList.toggle("bad", !!bad); status.innerHTML = html; }
+    function data() {
+      var d = {};
+      ["firstName", "lastName", "email", "phone", "qualification", "stream", "specialization", "availability", "portfolio", "role", "website"].forEach(function (k) {
+        var el = form.elements[k]; d[k] = el ? String(el.value || "").trim() : "";
+      });
+      d.workTypes = [].map.call(form.querySelectorAll('input[name="workTypes"]:checked'), function (c) { return c.value; });
+      return d;
+    }
+    function finish(d) {
+      var card = form.closest(".join-card"), done = card.querySelector(".jdone");
+      document.getElementById("jname").textContent = d.firstName;
+      document.getElementById("jmail").textContent = d.email;
+      form.hidden = true; done.hidden = false;
+      requestAnimationFrame(function () { done.classList.add("on"); });
+      scrollToEl(card, false); done.focus({ preventScroll: true });
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var bad = fields.filter(function (f) { return !check(f); });
+      progress();
+      if (bad.length) {
+        scrollToEl(bad[0], true);
+        var el = bad[0].querySelector("input,select"); if (el) el.focus({ preventScroll: true });
+        return;
+      }
+      var d = data();
+      if (d.website) return; /* honeypot filled: a bot, drop it */
+      if (!C.latticeEndpoint) {
+        /* no backend configured yet: fall back to an email with the answers */
+        var lines = Object.keys(d).filter(function (k) { return k !== "website" && d[k] && d[k].length; }).map(function (k) { return k + ": " + (d[k].join ? d[k].join(", ") : d[k]); });
+        var href = "mailto:" + C.careersEmail + "?subject=" + encodeURIComponent("Lattice application | " + d.firstName + " " + d.lastName) + "&body=" + encodeURIComponent(lines.join("\n") + "\n\nPlease attach your resume to this email.\n\nSent from the Latryn website");
+        window.location.href = href;
+        say('Your email app should open with this application filled in. Attach your resume before you send it. If it did not open, <a href="' + href + '">open it here</a>.');
+        return;
+      }
+      busy(true); status.hidden = true;
+      var x = file.files[0], reader = new FileReader();
+      reader.onerror = function () { busy(false); say("We could not read that file. Choose it again and resubmit.", true); };
+      reader.onload = function () {
+        d.resume = { name: x.name, type: x.type || "application/octet-stream", size: x.size, data: String(reader.result).split(",")[1] };
+        /* text/plain keeps this a simple request, so Apps Script needs no CORS preflight */
+        fetch(C.latticeEndpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(d) })
+          .then(function (r) { return r.json(); })
+          .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); busy(false); finish(d); })
+          .catch(function (err) {
+            busy(false);
+            var reason = err && err.message && !/fetch|network|JSON/i.test(err.message) ? esc(err.message) + ". " : "";
+            say(reason + 'We could not send your application. Check your connection and try again, or email <a href="mailto:' + C.careersEmail + '">' + C.careersEmail + "</a> with your resume.", true);
+          });
+      };
+      reader.readAsDataURL(x);
+    });
+    progress();
+  }
 
   /* ---------- inner pages (the homepage runs its own motion) ---------- */
   if (document.body.getAttribute("data-page") === "home") return;

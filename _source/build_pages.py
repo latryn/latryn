@@ -65,7 +65,7 @@ def nav(pre, current=''):
     def cur(n): return ' aria-current="page"' if n == current else ''
     return f'''<header class="nav" id="nav"><nav class="nav-in" aria-label="Main">
 <a href="{pre}index.html" class="logo" aria-label="Latryn home"><svg viewBox="0 0 292 94" width="87" height="28" aria-hidden="true">{LOGO}</svg></a>
-<div class="nav-links"><a href="{pre}index.html#egocentric">Egocentric</a><a href="{pre}index.html#build">Services</a><a href="{pre}index.html#quality">Quality</a><a href="{pre}sample-tasks.html"{cur('tasks')}>Sample tasks</a><a href="{pre}blog/index.html"{cur('blog')}>Blog</a><a href="{pre}index.html#lattice">Careers</a></div>
+<div class="nav-links"><a href="{pre}index.html#egocentric">Egocentric</a><a href="{pre}index.html#build">Services</a><a href="{pre}index.html#quality">Quality</a><a href="{pre}sample-tasks.html"{cur('tasks')}>Sample tasks</a><a href="{pre}blog/index.html"{cur('blog')}>Blog</a><a href="{pre}index.html#lattice"{cur('join')}>Careers</a></div>
 <a class="btn btn-ink" href="{pre}index.html?type=Scope%20a%20program#contact" style="min-height:44px;padding:11px 18px;font-size:15px">Scope a program <span class="sq" aria-hidden="true"></span></a>
 </nav></header>'''
 
@@ -194,14 +194,109 @@ def sample_tasks():
 <p style="margin:0 0 96px;color:var(--body)">Related reading: <a href="blog/building-agent-environments.html">How to build agent environments that test real work</a>.</p>
 </main>''' + footer(''))
 
+QUALIFICATIONS = ['Diploma', 'Bachelors', 'Masters', 'PhD']
+SPECIALIZATIONS = [
+    'Physical Sciences (Physics, Chemistry, Astronomy, Earth Sciences)',
+    'Life Sciences (Biology, Zoology, Botany, Genetics, Ecology)',
+    'Health & Medical Sciences (Medicine, Nursing, Pharmacology, Neuroscience)',
+    'Computing & Data (Computer Science, Data Analytics, AI, Cloud Computing)',
+    'Development & Networks (Software Engineering, Web Development, Cybersecurity, Network Administration)',
+    'Core Engineering (Mechanical, Electrical, Civil, Chemical)',
+    'Advanced Engineering (Aerospace, Biomedical, Environmental, Robotics)',
+    'Visual Arts (Graphic Design, Fine Arts, Painting, Photography, Sculpture)',
+    'Media & Digital Arts (Animation, UI/UX Design, Game Design, Video Production, Digital Illustration)',
+    'Performing Arts (Music Production, Sound Design, Theater, Choreography)',
+    'Design & Architecture (Industrial Design, Fashion Design, Urban Planning, Architecture)',
+    'Humanities & Communication (Technical Writing, Ethics in Technology, Language Arts, History)',
+    'Pure Mathematics (Algebra, Calculus, Geometry, Number Theory)',
+    'Applied Mathematics (Statistics, Actuarial Science, Cryptography, Quantitative Finance)',
+    'Other']
+STREAMS = ['Science', 'Commerce', 'Arts', 'Engineering', 'Other']
+WORK_TYPES = ['Writing / Content', 'Design', 'Development', 'Data / Research', 'Teaching / Tutoring', 'Other']
+AVAILABILITY = ['Part-time', 'Full-time', 'Weekends only']
+
+def join():
+    """Lattice application page. The form posts to the Google Apps Script in apps-script/ (see its README)."""
+    def select(name, label, opts, msg, full=False):
+        o = ''.join(f'<option>{html.escape(x)}</option>' for x in opts)
+        return (f'<div class="field{" full" if full else ""}" data-field data-msg="{msg}"><label for="{name}">{label}</label>'
+                f'<select id="{name}" name="{name}" required aria-describedby="e-{name}"><option value="">Select</option>{o}</select>'
+                f'<p class="err" id="e-{name}" aria-live="polite"></p></div>')
+    def text(name, label, msg, attrs='', full=False, opt=False):
+        req = '' if opt else ' required'
+        tag = ' <span class="opt">Optional</span>' if opt else ''
+        return (f'<div class="field{" full" if full else ""}" data-field data-msg="{msg}"><label for="{name}">{label}{tag}</label>'
+                f'<input id="{name}" name="{name}"{req} {attrs} aria-describedby="e-{name}">'
+                f'<p class="err" id="e-{name}" aria-live="polite"></p></div>')
+    work = ''.join(f'<label class="pick"><input type="checkbox" name="workTypes" value="{html.escape(w)}"><span>{html.escape(w)}</span></label>' for w in WORK_TYPES)
+    avail = ''.join(f'<label class="pick"><input type="radio" name="availability" value="{a}" required><span>{a}</span></label>' for a in AVAILABILITY)
+    desc = "Apply to join the Lattice, Latryn's vetted network of experts who build AI evaluation, training and egocentric data. Share your background and resume."
+    return (head('Apply to the Lattice | Latryn', desc, 'join.html', '') + nav('', 'join') + f'''
+<main id="main" class="wrap join">
+<div class="join-grid">
+<aside class="join-intro">
+<div class="crumbs"><a href="index.html">Home</a> / <a href="index.html#lattice">The Lattice</a> / Apply</div>
+<h1>Apply to the Lattice<span class="dot"></span></h1>
+<p class="lede">Our vetted network of engineers, researchers and specialists. Tell us what you know and the work you want. We read every application.</p>
+<ol class="join-steps">
+<li><b>01</b><div><strong>Apply</strong><span>Share your background and resume. You get a confirmation email straight away.</span></div></li>
+<li><b>02</b><div><strong>Assessment</strong><span>A two-part timed assessment: an auto-scored technical section and a scenario section reviewed by our team.</span></div></li>
+<li><b>03</b><div><strong>Join</strong><span>Clear both and we match you to programs in your field.</span></div></li>
+</ol>
+<p class="join-mail">Questions? <a data-email="careers" href="#"></a></p>
+</aside>
+<div class="join-card">
+<form class="form jform" id="apply-form" aria-label="Lattice application" novalidate>
+<div class="jprog" aria-hidden="true"><span class="mono"><b id="jcount">0</b> of 10 answered</span><span class="track"><i id="jbar"></i></span></div>
+<fieldset><legend class="eyebrow"><b>01</b> / About you</legend><div class="fgrid2">
+{text('firstName', 'First name', 'Enter your first name', 'autocomplete="given-name" maxlength="80"')}
+{text('lastName', 'Last name', 'Enter your last name', 'autocomplete="family-name" maxlength="80"')}
+{text('email', 'Email', 'Enter your email address', 'type="email" autocomplete="email" maxlength="160" placeholder="name@example.com"')}
+{text('phone', 'Phone number', 'Enter your phone number', 'type="tel" inputmode="numeric" autocomplete="tel-national" pattern="[0-9]{10}" maxlength="10" placeholder="10 digits"')}
+</div></fieldset>
+<fieldset><legend class="eyebrow"><b>02</b> / Education</legend><div class="fgrid2">
+{select('qualification', 'Qualification', QUALIFICATIONS, 'Choose your highest qualification')}
+{select('stream', 'Stream', STREAMS, 'Choose your stream')}
+{select('specialization', 'Specialization', SPECIALIZATIONS, 'Choose your specialization', True)}
+</div></fieldset>
+<fieldset><legend class="eyebrow"><b>03</b> / Work</legend><div class="fgrid2">
+<fieldset class="field full" data-field data-group="workTypes" data-msg="Choose at least one type of work" aria-describedby="e-workTypes"><legend class="lbl">Type of freelance work <span class="opt">Choose all that apply</span></legend><div class="picks">{work}</div><p class="err" id="e-workTypes" aria-live="polite"></p></fieldset>
+<fieldset class="field full" data-field data-group="availability" data-msg="Choose your availability" aria-describedby="e-availability"><legend class="lbl">Availability</legend><div class="picks">{avail}</div><p class="err" id="e-availability" aria-live="polite"></p></fieldset>
+{text('portfolio', 'Portfolio or LinkedIn link', 'Enter a full link, for example https://linkedin.com/in/you', 'type="url" inputmode="url" autocomplete="url" maxlength="300" placeholder="https://"', True, True)}
+</div></fieldset>
+<fieldset><legend class="eyebrow"><b>04</b> / Resume</legend>
+<div class="field" data-field data-msg="Upload your resume">
+<label class="drop" for="resume"><input type="file" id="resume" name="resume" required accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="h-resume e-resume">
+<span class="drop-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0-5 5m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
+<span class="drop-t"><strong>Choose a file</strong> or drop it here</span>
+<span class="drop-h mono" id="h-resume">PDF or Word document, one file, up to 10 MB</span>
+<span class="drop-file mono" hidden></span></label>
+<p class="err" id="e-resume" aria-live="polite"></p></div>
+</fieldset>
+<input type="hidden" name="role">
+<label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+<div class="jsubmit"><button class="btn btn-verd" type="submit">Submit application <span class="arr" aria-hidden="true">→</span></button><span class="note">We store your answers and resume to review your application. See our <a href="privacy.html">privacy policy</a>.</span></div>
+<p class="form-ok" hidden role="status"></p>
+</form>
+<div class="jdone" hidden tabindex="-1">
+<span class="stamp" aria-hidden="true"></span>
+<span class="eyebrow"><b>Received</b> / Lattice application</span>
+<h2>Thanks, <span id="jname">we have it</span><span class="dot"></span></h2>
+<p>Your application is in. We sent a confirmation to <strong id="jmail">your email</strong>. If your background fits a current program, we will email you the assessment.</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn btn-ink" href="index.html">Back to the homepage</a><a class="btn btn-ghost" href="blog/index.html">Read the blog</a></div>
+</div>
+</div>
+</div>
+</main>''' + footer(''))
+
 def legal(kind):
     if kind == 'privacy':
         title, body = 'Privacy policy', '''<p>This website does not use cookies, analytics or advertising trackers.</p>
-<h2>What we collect</h2><p>When you use the contact or application forms, your email app opens with a message addressed to us. We only receive what you choose to send, such as your name, email address, company and message.</p>
-<h2>How we use it</h2><p>We use your message to reply to you and to discuss a possible project or role. We do not sell your information or share it for marketing.</p>
+<h2>What we collect</h2><p>When you use the contact form, your email app opens with a message addressed to us. We only receive what you choose to send, such as your name, email address, company and message.</p>
+<p>When you apply to the Lattice, we receive the answers you enter (name, email, phone number, education, specialization, type of work, availability and any profile link) and the resume you upload. They are stored in our Google Workspace account (Google Sheets and Google Drive), and we send a confirmation to the email address you give.</p>
+<h2>How we use it</h2><p>We use your message to reply to you and to discuss a possible project or role. We use applications only to assess you for the Lattice and to contact you about it. We do not sell your information or share it for marketing.</p>
 <h2>Retention and your rights</h2><p>We keep correspondence for as long as needed to respond and to meet legal obligations. You can ask us to access, correct or delete your information at any time by emailing <a data-email="general" href="#"></a>.</p>
-<h2>Third parties</h2><p>Fonts are loaded from Google Fonts, which receives standard request information such as your IP address.</p>
-<p><em>[Review this policy with your legal adviser before launch.]</em></p>'''
+<h2>Third parties</h2><p>Fonts are loaded from Google Fonts, which receives standard request information such as your IP address. Lattice applications are processed by Google Workspace on our behalf.</p>'''
     else:
         title, body = 'Terms of use', '''<p>By using this website you agree to these terms.</p>
 <h2>Content</h2><p>Articles are provided for information. We link to the original research for every cited claim, and those works belong to their authors.</p>
@@ -209,7 +304,7 @@ def legal(kind):
 <h2>Contact</h2><p>Questions about these terms: <a data-email="general" href="#"></a>.</p>
 <p><em>[Review these terms with your legal adviser before launch.]</em></p>'''
     return (head(f'{title} | Latryn', f'Latryn {title.lower()}.', f'{kind}.html', '') + nav('') +
-            f'<main id="main" class="narrow"><header class="page-hero"><div class="crumbs"><a href="index.html">Home</a> / {title}</div><h1>{title}<span class="dot"></span></h1><p>Last updated 24 October 2026.</p></header><div class="prose" style="padding-bottom:96px">{body}</div></main>' + footer(''))
+            f'<main id="main" class="narrow"><header class="page-hero"><div class="crumbs"><a href="index.html">Home</a> / {title}</div><h1>{title}<span class="dot"></span></h1><p>Last updated {"28" if kind == "privacy" else "24"} October 2026.</p></header><div class="prose" style="padding-bottom:96px">{body}</div></main>' + footer(''))
 
 def not_found():
     return (head('Page not found | Latryn', 'This page does not exist.', '404.html', '/') + nav('/') +
@@ -228,8 +323,9 @@ def build():
     write('sample-tasks.html', sample_tasks())
     write('privacy.html', legal('privacy'))
     write('terms.html', legal('terms'))
+    write('join.html', join())
     write('404.html', not_found())
-    urls = ['', 'blog/', 'sample-tasks.html', 'privacy.html', 'terms.html'] + [f"blog/{p['slug']}.html" for p in POSTS]
+    urls = ['', 'blog/', 'sample-tasks.html', 'join.html', 'privacy.html', 'terms.html'] + [f"blog/{p['slug']}.html" for p in POSTS]
     write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
           ''.join(f'  <url><loc>{BASE_URL}/{u}</loc><lastmod>{PUBLISHED}</lastmod></url>\n' for u in urls) + '</urlset>\n')
     write('robots.txt', f'''# Latryn welcomes search engines and AI assistants.
@@ -284,6 +380,7 @@ Work follows a five-step process: Scope, Calibrate, Build, Verify, Deliver. Expe
 - [Homepage]({BASE_URL}/): Egocentric data, services, audiences, quality process, comparison with crowd vendors, careers and FAQ
 - [Sample tasks]({BASE_URL}/sample-tasks.html): The file structure of delivered work (egocentric clip, terminal task, rubric evaluation, preference judgement)
 - [Contact]({BASE_URL}/#contact): Scope a program or book a call. Email: {EMAIL}
+- [Apply to the Lattice]({BASE_URL}/join.html): Application form for experts and freelancers (education, specialization, type of work, availability, resume)
 - [Agent guide]({BASE_URL}/agents.txt): How AI agents can describe Latryn and route requests
 
 ## Articles
@@ -292,7 +389,7 @@ Work follows a five-step process: Scope, Calibrate, Build, Verify, Deliver. Expe
 
 ## Optional
 
-- [Privacy policy]({BASE_URL}/privacy.html): No cookies or trackers; forms send email only
+- [Privacy policy]({BASE_URL}/privacy.html): No cookies or trackers; the contact form sends email, Lattice applications are stored for review
 - [Terms of use]({BASE_URL}/terms.html)
 ''')
     write('agents.txt', f'''# agents.txt for Latryn
@@ -317,8 +414,9 @@ data collection and annotation for robotics and embodied AI, plus benchmarks, tr
 - Scope a data program (any practice): {BASE_URL}/index.html?type=Scope%20a%20program#contact
 - Book a call: {BASE_URL}/index.html?type=Book%20a%20call#contact
 - General question: {BASE_URL}/index.html?type=General%20question#contact
-- Join the expert network (careers): {BASE_URL}/index.html?role=Domain%20Expert#apply-form
-The contact form opens the user's email app with the answers filled in. There is no API and no
+- Join the expert network (careers): {BASE_URL}/join.html
+The contact form opens the user's email app with the answers filled in. The Lattice application
+form submits directly and needs a resume file (PDF or Word, up to 10 MB). There is no API and no
 automated booking. Do not submit forms without the user's confirmation.
 
 ## Facts agents should keep accurate

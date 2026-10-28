@@ -410,7 +410,12 @@ tbody .us{border-top:1px solid var(--dark-line)}
 .form .note{font-size:13px;color:var(--muted);line-height:1.5}
 .btn.sent{background:var(--ink)!important;color:var(--paper)!important}
 .form-ok{grid-column:1/-1;animation:changed 1.6s var(--ease);background:var(--tint);color:var(--ink-2);border-radius:10px;padding:12px 14px;font-size:14px}
-.apply{margin-top:20px;background:var(--sunken)}
+.apply-card{position:relative;display:flex;flex-direction:column;gap:12px;margin-top:20px;padding:30px;border-radius:20px;background:var(--sunken);border:1px solid var(--hair);color:var(--ink);text-decoration:none;overflow:hidden;transition:border-color .3s,transform .35s var(--ease),box-shadow .35s}
+.apply-card::after{content:"";position:absolute;top:24px;right:24px;width:12px;height:12px;background:var(--ember);transform:scale(0) rotate(-45deg);transition:transform .4s var(--ease)}
+.apply-card:hover{border-color:var(--verd);color:var(--ink);transform:translateY(-4px);box-shadow:0 24px 50px rgba(17,15,12,.1)}.apply-card:hover::after{transform:none}
+.apply-card .ac-t{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.02em}
+.apply-card .ac-b{font-size:15px;line-height:1.55;color:var(--body);max-width:460px}
+.apply-card .btn{align-self:flex-start;margin-top:6px}.apply-card:hover .btn .arr{transform:translateX(4px)}
 
 /* ===== blog ===== */
 .blog{padding:60px 24px 120px}
@@ -803,7 +808,7 @@ footer a{color:var(--paper);text-decoration:none;transition:color .2s}footer a:h
     <div class="txt">
       <span class="eyebrow"><b style="color:var(--ember-l)">05</b> / Task library</span>
       <h2>See the work,<br><span class="grey">not just the file</span><span class="dot" style="background:var(--ember-l)"></span></h2>
-      <p>Read the brief, inspect the environment and run the verifier yourself. [NUMBER] sample tasks across [NUMBER] categories.</p>
+      <p>Read the brief, inspect the environment and run the verifier yourself.</p>
       <a class="btn btn-glow" href="sample-tasks.html" style="align-self:flex-start">Open the task library <span class="arr" aria-hidden="true">→</span></a>
     </div>
     <div class="files" id="files">
@@ -826,26 +831,21 @@ footer a{color:var(--paper);text-decoration:none;transition:color .2s}footer a:h
       <span class="eyebrow"><b>06</b> / The Lattice</span>
       <h2>Work on the problems<br><span class="grey">you already know</span><span class="dot"></span></h2>
       <p>Our vetted network of engineers, researchers and specialists. Everyone passes a two-part timed assessment: an auto-scored technical section and a scenario section reviewed by our team.</p>
-      <a class="btn btn-ink" href="#apply-form" data-cta="apply" style="align-self:flex-start">Join the Lattice <span class="arr" aria-hidden="true">→</span></a>
+      <a class="btn btn-ink" href="join.html" style="align-self:flex-start">Join the Lattice <span class="arr" aria-hidden="true">→</span></a>
     </div>
     <div>
-      <a class="role" href="#apply-form" data-cta="apply" data-role="Software Engineer"><span class="rn">Software Engineer</span><span class="ra" aria-hidden="true">→</span><span class="rb">Author hard terminal tasks with reference solutions and verifiers.</span></a>
-      <a class="role" href="#apply-form" data-cta="apply" data-role="ML & Evaluation Specialist"><span class="rn">ML &amp; Evaluation Specialist</span><span class="ra" aria-hidden="true">→</span><span class="rb">Design evaluation cases and score outputs against a rubric.</span></a>
-      <a class="role" href="#apply-form" data-cta="apply" data-role="Domain Expert"><span class="rn">Domain Expert</span><span class="ra" aria-hidden="true">→</span><span class="rb">Review tasks where correctness needs specialist knowledge.</span></a>
+      <a class="role" href="join.html?role=Software%20Engineer"><span class="rn">Software Engineer</span><span class="ra" aria-hidden="true">→</span><span class="rb">Author hard terminal tasks with reference solutions and verifiers.</span></a>
+      <a class="role" href="join.html?role=ML%20%26%20Evaluation%20Specialist"><span class="rn">ML &amp; Evaluation Specialist</span><span class="ra" aria-hidden="true">→</span><span class="rb">Design evaluation cases and score outputs against a rubric.</span></a>
+      <a class="role" href="join.html?role=Domain%20Expert"><span class="rn">Domain Expert</span><span class="ra" aria-hidden="true">→</span><span class="rb">Review tasks where correctness needs specialist knowledge.</span></a>
       <div class="tags">
         <span>Software engineering</span><span>Mathematics</span><span>Scientific reasoning</span><span>ML research</span><span>Security</span><span>Linguistics</span><span>Prompt engineering</span><span>Data engineering</span><span>Egocentric capture</span>
       </div>
-      <form class="form apply" id="apply-form" aria-labelledby="apply-title" novalidate>
-        <h3 id="apply-title" class="full" style="font-size:22px">Apply to the Lattice</h3>
-        <label>Name<input name="name" autocomplete="name" required></label>
-        <label>Email<input name="email" type="email" autocomplete="email" required></label>
-        <label>Role<select name="role" required><option>Software Engineer</option><option>ML &amp; Evaluation Specialist</option><option>Domain Expert</option></select></label>
-        <label>Years of experience<select name="experience" required><option value="">Select</option><option>2 to 4</option><option>5 to 9</option><option>10 or more</option></select></label>
-        <label class="full">Domain or specialism<input name="domain" placeholder="e.g. distributed systems, organic chemistry" required></label>
-        <label class="full">Profile or portfolio link<input name="links" type="url" placeholder="https://"></label>
-        <div class="full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="btn btn-ink" type="submit">Send application <span class="arr" aria-hidden="true">→</span></button><span class="note">Opens your email app with your answers filled in. You need 2+ years of experience.</span></div>
-        <p class="form-ok" hidden role="status">Your email app should open with this application ready to send. If it didn't, <a href="#">open it here</a>.</p>
-      </form>
+      <a class="apply-card" href="join.html">
+        <span class="eyebrow"><b>Open</b> / Applications</span>
+        <span class="ac-t">Apply to the Lattice</span>
+        <span class="ac-b">Share your education, specialization, the work you want and your resume. You get a confirmation email as soon as you apply.</span>
+        <span class="btn btn-verd" aria-hidden="true">Start your application <span class="arr">→</span></span>
+      </a>
     </div>
   </div>
 </section>

@@ -23,6 +23,7 @@ Work follows a five-step process: Scope, Calibrate, Build, Verify, Deliver. Expe
 - [Homepage](https://latryn.com/): Egocentric data, services, audiences, quality process, comparison with crowd vendors, careers and FAQ
 - [Sample tasks](https://latryn.com/sample-tasks.html): The file structure of delivered work (egocentric clip, terminal task, rubric evaluation, preference judgement)
 - [Contact](https://latryn.com/#contact): Scope a program or book a call. Email: contact@latryn.com
+- [Apply to the Lattice](https://latryn.com/join.html): Application form for experts and freelancers (education, specialization, type of work, availability, resume)
 - [Agent guide](https://latryn.com/agents.txt): How AI agents can describe Latryn and route requests
 
 ## Articles
@@ -37,5 +38,5 @@ Work follows a five-step process: Scope, Calibrate, Build, Verify, Deliver. Expe
 
 ## Optional
 
-- [Privacy policy](https://latryn.com/privacy.html): No cookies or trackers; forms send email only
+- [Privacy policy](https://latryn.com/privacy.html): No cookies or trackers; the contact form sends email, Lattice applications are stored for review
 - [Terms of use](https://latryn.com/terms.html)

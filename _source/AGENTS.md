@@ -9,6 +9,7 @@ Static marketing site for **Latryn**, a data lab for frontier AI. **Lead offer: 
 ```
 index.html              homepage (self-contained CSS, loads assets/site.js and assets/home.js)
 sample-tasks.html       task library preview (CTA target for "Browse sample tasks")
+join.html               Lattice application form (generated; posts to Google Apps Script)
 privacy.html, terms.html, 404.html
 blog/index.html         blog listing
 blog/<slug>.html        articles (generated)
@@ -41,19 +42,22 @@ Edit the `window.LATRYN` block at the top of `assets/site.js`:
 | Key | Used by |
 |---|---|
 | `email` | `contact@latryn.com`. Contact form, "Scope a program", "Book a call" fallback, footer email |
-| `careersEmail` | `contact@latryn.com`. "Join the Lattice" application form |
+| `careersEmail` | `contact@latryn.com`. Shown on `join.html` for application questions and used by its email fallback |
+| `latticeEndpoint` | Google Apps Script web app URL for `join.html`. Empty = the application opens an email instead. Setup: `_source/apps-script/README.md` |
 | `bookingUrl` | "Book a call". Empty = scrolls to the contact form with "Book a call" preselected |
 | `social.linkedin/x/youtube` | Footer links. Empty = link is hidden, never broken |
 
 CTAs declare intent with attributes; do not hard-code mailto links:
 - `data-cta="<option text>"` prefills the contact form's "I want to" select. The value must match an `<option>` exactly.
 - `data-audience="AI Labs|AI Platforms|Enterprise AI"` prefills audience.
-- `data-cta="apply" data-role="<role>"` prefills the Lattice application form.
+- "Join the Lattice" links go to `join.html`; `join.html?role=<role>` records the role of interest in a hidden field.
 - Cross-page links use URL params: `index.html?type=Scope%20a%20program#contact`.
 
 The build also writes the address into every `data-email` link, so it shows without JavaScript; if you change it, update `EMAIL` in `build_pages.py` too.
 
-Forms have no backend: they compose an email with the answers. To switch to a form service later, replace `wire()` in `site.js` and keep the field names.
+The contact form has no backend: it composes an email with the answers. To switch it to a form service later, replace `wire()` in `site.js` and keep the field names.
+
+The Lattice application (`join.html`, built by `join()` in `build_pages.py`, behaviour in `lattice()` in `site.js`) posts JSON with the resume as base64 to the Google Apps Script in `_source/apps-script/lattice-apply.gs`. The script saves the resume to Drive, adds a row to the sheet and emails a confirmation to the applicant and a copy to `contact@latryn.com`. If you change an option list in `build_pages.py`, change `OPTIONS` in the script too and redeploy it.
 
 ## Egocentric data: how it appears on the site
 
