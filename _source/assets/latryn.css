@@ -7,7 +7,7 @@
   --verd:#056e5b; --verd-d:#045445; --verd-l:#52c1a7; --tint:#d6f5eb; --tint-2:#afe9d8;
   --ember:#be4100; --ember-l:#ff8255; --cobalt:#2456b9;
   --dark:#110f0c; --dark-2:#1c1a17; --dark-line:#2f2e2a; --dark-muted:#b4b1aa;
-  --ease:cubic-bezier(.2,.7,.2,1);
+  --ease:cubic-bezier(.2,.7,.2,1); --expo:cubic-bezier(.16,1,.3,1);
   --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
   --disp:"Outfit","Schibsted Grotesk",sans-serif;
   --mono:"JetBrains Mono",Menlo,monospace;
@@ -142,7 +142,7 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;margin:0}
 .field.full{grid-column:1/-1}
 .field>label,.field .lbl{font-size:14px;font-weight:600;color:var(--ink);padding:0}
 .opt{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-left:6px}
-.jform input:not([type=checkbox]):not([type=radio]):not([type=file]),.jform select{width:100%;font:400 16px var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--muted);border-radius:10px;padding:12px 14px;min-height:48px;transition:border-color .2s,box-shadow .2s,background .2s}
+.jform input:not([type=checkbox]):not([type=radio]):not([type=file]),.jform select{width:100%;font:400 16px var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--muted);border-radius:10px;padding:12px 14px;min-height:48px;transition:border-color .2s,box-shadow .25s,background .2s,transform .25s var(--expo)}
 .jform select{appearance:none;-webkit-appearance:none;padding-right:42px;text-overflow:ellipsis;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23110f0c' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
 .jform input:hover,.jform select:hover{border-color:var(--ink-2)}
 .jform input:focus,.jform select:focus{outline:none;border-color:var(--verd);background-color:var(--raised);box-shadow:0 0 0 3px rgba(5,110,91,.18)}
@@ -192,6 +192,45 @@ h1,h2,h3{font-family:var(--disp);font-weight:700;margin:0}
 .jdone.on .stamp{opacity:1;transform:none}
 .jdone.on{animation:rise .6s var(--ease)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* form motion: entrances use expo out, responses 150 to 450ms, nothing loops while idle */
+@keyframes cardin{from{opacity:0;transform:translateY(32px) rotate(-1.4deg)}to{opacity:1;transform:none}}
+@keyframes linein{from{transform:scaleX(0)}to{transform:none}}
+@keyframes stampin{from{opacity:0;transform:scale(1.9)}to{opacity:1;transform:scale(1.15)}}
+@keyframes errin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@keyframes chipin{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes tick{from{opacity:0;transform:translateY(70%)}to{opacity:1;transform:none}}
+@keyframes nudge{0%{box-shadow:0 0 0 0 rgba(190,65,0,.35)}100%{box-shadow:0 0 0 10px rgba(190,65,0,0)}}
+.js .join-card{animation:cardin .9s var(--expo) .15s both;transform-origin:50% 100%}
+.js .join-steps li{position:relative;border-bottom-color:transparent}
+.js .join-steps li::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--hair);transform-origin:left;animation:linein .8s var(--expo) both}
+.js .join-steps li:nth-child(1)::after{animation-delay:.35s}.js .join-steps li:nth-child(2)::after{animation-delay:.45s}.js .join-steps li:nth-child(3)::after{animation-delay:.55s}
+.field>label,.field .lbl{transition:color .2s}
+.field:focus-within>label{color:var(--verd-d)}
+.jform input:not([type=checkbox]):not([type=radio]):not([type=file]):focus,.jform select:focus{transform:translateY(-1px)}
+.err:not(:empty){animation:errin .3s var(--expo)}
+.field.nudge input,.field.nudge select,.field.nudge .drop,.field.nudge .pick span{animation:nudge .9s var(--expo)}
+.pick input:checked+span::before{animation:stampin .38s var(--expo) both}
+.pick span{transition:background .25s,border-color .25s,color .25s,transform .25s var(--expo)}
+.jform>fieldset>legend b{transition:color .3s}
+.jform>fieldset>legend::after{content:"Complete";float:right;display:inline-block;color:var(--cobalt);opacity:0;transform:translateX(-8px);transition:opacity .25s,transform .45s var(--expo)}
+.jform>fieldset.done>legend::after{opacity:1;transform:none}
+.jform>fieldset.done>legend b{color:var(--cobalt)}
+.jprog b{display:inline-block}
+.jprog b.tick{animation:tick .3s var(--expo)}
+.jprog .track i{transition:transform .6s var(--expo),background .3s}
+.jprog.full .track i{background:var(--cobalt)}
+.jprog.full .mono{color:var(--cobalt)}
+.drop{transition:border-color .2s,background .2s,transform .35s var(--expo)}
+.drop.over{transform:scale(1.015)}
+.drop.over .drop-ic{transform:translateY(-5px)}
+.drop-ic svg{grid-area:1/1}.drop-ic{display:inline-grid;place-items:center}
+.drop-ic .ck{opacity:0;transform:scale(1.9)}
+.drop.has .drop-ic{background:var(--tint);border-color:var(--verd)}
+.drop.has .drop-ic .up{opacity:0;transform:translateY(-6px);transition:opacity .15s,transform .3s var(--expo)}
+.drop.has .drop-ic .ck{opacity:1;transform:none;transition:opacity .15s linear,transform .38s var(--expo)}
+.drop-file:not([hidden]){animation:chipin .4s var(--expo)}
+.jdone .stamp{transition:opacity .15s linear .25s,transform .45s var(--expo) .25s}
+.jdone.on{animation:rise .6s var(--expo)}
 @media (max-width:900px){.join-grid{grid-template-columns:1fr;gap:36px}.join-intro{position:static}}
 @media (max-width:600px){.join{padding-left:16px;padding-right:16px}.fgrid2{grid-template-columns:1fr}.jform{padding:0 20px 24px}.jprog{margin:0 -20px;padding:14px 20px}.jdone{padding:40px 22px}.drop{padding:26px 14px}.join-card{border-radius:18px}}
 

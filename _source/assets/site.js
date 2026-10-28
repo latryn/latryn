@@ -158,10 +158,19 @@ window.LATRYN = {
       [].forEach.call(f.querySelectorAll("input,select"), function (el) { el.setAttribute("aria-invalid", msg ? "true" : "false"); });
       return !msg;
     }
+    function needed(f) { return f.getAttribute("data-group") || control(f).required; }
     function progress() {
-      var done = fields.filter(function (f) { return (f.getAttribute("data-group") || control(f).required) && !problem(f); }).length;
-      if (count) count.textContent = done;
-      if (bar) bar.style.transform = "scaleX(" + done / 10 + ")";
+      var done = fields.filter(function (f) { return needed(f) && !problem(f); }).length;
+      if (count && count.textContent !== String(done)) {
+        count.textContent = done;
+        count.classList.remove("tick"); void count.offsetWidth; count.classList.add("tick");
+      }
+      if (bar) { bar.style.transform = "scaleX(" + done / 10 + ")"; bar.parentNode.parentNode.classList.toggle("full", done === 10); }
+      /* a section's number turns to "Complete" once every required answer in it is valid */
+      [].forEach.call(form.querySelectorAll(":scope > fieldset"), function (s) {
+        var req = fields.filter(function (f) { return s.contains(f) && needed(f); });
+        s.classList.toggle("done", req.length > 0 && req.every(function (f) { return !problem(f); }));
+      });
     }
     fields.forEach(function (f) {
       f.addEventListener("change", function () { if (f.dataset.touched || f.getAttribute("data-group")) check(f); f.dataset.touched = 1; progress(); });
@@ -206,7 +215,15 @@ window.LATRYN = {
       var card = form.closest(".join-card"), done = card.querySelector(".jdone");
       document.getElementById("jname").textContent = d.firstName;
       document.getElementById("jmail").textContent = d.email;
+      /* the card eases from the form's height to the confirmation's instead of jumping */
+      var h0 = card.offsetHeight;
       form.hidden = true; done.hidden = false;
+      var h1 = card.offsetHeight;
+      if (!reduce && card.animate) {
+        card.style.overflow = "hidden";
+        card.animate([{ height: h0 + "px" }, { height: h1 + "px" }], { duration: 450, easing: "cubic-bezier(.16,1,.3,1)" })
+          .onfinish = function () { card.style.overflow = ""; };
+      }
       requestAnimationFrame(function () { done.classList.add("on"); });
       scrollToEl(card, false); done.focus({ preventScroll: true });
     }
@@ -216,6 +233,7 @@ window.LATRYN = {
       var bad = fields.filter(function (f) { return !check(f); });
       progress();
       if (bad.length) {
+        bad.forEach(function (f) { f.classList.remove("nudge"); void f.offsetWidth; f.classList.add("nudge"); });
         scrollToEl(bad[0], true);
         var el = bad[0].querySelector("input,select"); if (el) el.focus({ preventScroll: true });
         return;

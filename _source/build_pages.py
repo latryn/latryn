@@ -267,7 +267,7 @@ def join():
 <fieldset><legend class="eyebrow"><b>04</b> / Resume</legend>
 <div class="field" data-field data-msg="Upload your resume">
 <label class="drop" for="resume"><input type="file" id="resume" name="resume" required accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="h-resume e-resume">
-<span class="drop-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0-5 5m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
+<span class="drop-ic" aria-hidden="true"><svg class="up" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0-5 5m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><svg class="ck" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
 <span class="drop-t"><strong>Choose a file</strong> or drop it here</span>
 <span class="drop-h mono" id="h-resume">PDF or Word document, one file, up to 10 MB</span>
 <span class="drop-file mono" hidden></span></label>
